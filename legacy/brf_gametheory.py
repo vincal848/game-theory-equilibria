@@ -1,3 +1,50 @@
+"""SUPERSEDED. Kept for reference only -- this file is not part of the package and
+is known to be incorrect.
+
+Coursework implementation motivated by Gibbons, Game Theory for Applied Economists,
+ch. 1, 3, 4, and an IO course. Preserved because the README's "What was wrong"
+section refers to it. Do not import it.
+
+Known defects, each with a named regression test:
+
+1. ``multi_firm_cournot`` minimises the *negative of total industry profit*, i.e. it
+   maximises total industry profit, which is the collusive (cartel) output, not the
+   Cournot-Nash equilibrium where each firm maximises its own profit taking rivals'
+   quantities as given. For n=3, a=100, c=20, b=1 it returns q_i = 13.33 (total
+   Q = 40, the monopoly split) where the Cournot-Nash answer is q_i = 20 (total
+   Q = 60). See ``tests/test_cournot.py::test_symmetric_nash_quantity_matches_the_closed_form_for_n_1_to_5``
+   and ``docs/VALIDATION.md``.
+2. ``nash_equilibrium`` sets the LP objective to ``c = [-1, ..., -1]``, i.e. it
+   *maximises* sum(x) subject only to lower-bound constraints, which is unbounded for
+   essentially any input -- including the module's own worked example,
+   ``nash_equilibrium([[3, 1], [0, 2]])``, which returns ``None``. The correct LP
+   minimises sum(x) subject to ``A^T x >= 1``, and even then is only the right question
+   to ask for a zero-sum game, which this one isn't. See
+   ``tests/test_normal_form.py::test_zero_sum_value_matches_a_known_worked_example``.
+3. ``mixed_strategy_nash`` computes ``player_payoffs - opponent_payoffs`` and feeds
+   that into the same broken LP. Subtracting the two payoff matrices is only a
+   meaningful reduction to a zero-sum game when the game actually is zero-sum
+   (``opponent_payoffs == -player_payoffs``); for a general-sum game such as Battle of
+   the Sexes it answers a different game than the one that was asked about, which
+   ``normal_form.mixed_nash_equilibria`` (support enumeration, correct for nondegenerate
+   games) replaces. See
+   ``tests/test_normal_form.py::test_battle_of_the_sexes_has_three_equilibria``.
+4. ``bayesian_nash_equilibrium`` never uses ``opponent_type`` inside
+   ``type_specific_utility`` for the *strategy* argument -- it calls
+   ``self.calculate_best_response(opponent_strategy=0)`` unconditionally, so every
+   type's best response is computed against a rival producing zero, regardless of the
+   type probabilities or the rival's actual type-contingent strategy. ``bayesian.py``
+   replaces it with the Gibbons 3.1 closed form and a fixed-point solver that agree to
+   6 decimal places. See
+   ``tests/test_bayesian.py::test_closed_form_satisfies_the_three_best_response_conditions``.
+5. ``num_firms`` and ``repeated`` are constructor attributes that are never read
+   anywhere in the class. Module-level example code runs on import, including two
+   ``plt.show()`` calls, so simply importing this file blocks on a plot window.
+
+The working implementation is the flat modules at the repository root: ``cournot.py``,
+``normal_form.py``, ``bayesian.py``, ``repeated.py``.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import linprog, minimize
