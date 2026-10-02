@@ -2,8 +2,7 @@
 is known to be incorrect.
 
 Coursework implementation motivated by Gibbons, Game Theory for Applied Economists,
-ch. 1, 3, 4, and an IO course. Preserved because the README's "What was wrong"
-section refers to it. Do not import it.
+ch. 1, 3, 4, and an IO course. Do not import it.
 
 Known defects, each with a named regression test:
 

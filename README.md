@@ -92,55 +92,6 @@ Cournot-Nash quantities with c2=cL and c2=cH respectively.
 sustain as more firms would have to be kept in line. The classic Prisoner's Dilemma
 (T=5, R=3, P=1) gives delta* = 0.5.
 
-## What was wrong
-
-**`multi_firm_cournot` found the collusive output, not the Cournot-Nash equilibrium.**
-It calls `scipy.optimize.minimize` on the *negative sum* of every firm's profit, which
-maximises *total industry profit* -- that's the monopoly/cartel problem, where firms
-coordinate, not the Cournot problem, where each firm maximises its own profit taking
-rivals' output as given. For n=3, a=100, c=20, b=1 it returns `[13.33, 13.33, 13.33]`
-(total Q=40, exactly half the competitive quantity) where the correct Cournot-Nash
-answer is `q_i=20` each (total Q=60).
-`test_symmetric_nash_quantity_matches_the_closed_form_for_n_1_to_5` pins the fix: a
-closed-form derivation (worked out in [docs/THEORY.md](docs/THEORY.md)) that needs no
-numerical optimiser at all.
-
-**`nash_equilibrium`'s linear program had its objective sign backwards.** The LP sets
-`c = [-1, ..., -1]`, which `linprog` minimises -- so it *maximises* `sum(x)` subject
-only to lower-bound constraints, which is unbounded for almost any payoff matrix.
-Running the module's own worked example, `nash_equilibrium([[3, 1], [0, 2]])`, returns
-`None`. It fails the same way on matching pennies, rock-paper-scissors, and every
-other matrix tried in `validate.py`. The standard LP minimises `sum(x)` subject to
-`A^T x >= 1`; `normal_form.zero_sum_value` does that correctly, plus shifts the matrix
-to be positive first (the formulation requires it), which also wasn't done.
-
-**`mixed_strategy_nash` subtracted two unrelated payoff matrices.**
-`player_payoffs - opponent_payoffs` is only a meaningful way to reduce a game to the
-zero-sum case when the game *is* zero-sum, i.e. `opponent_payoffs == -player_payoffs`.
-Feeding it Battle of the Sexes's two payoff matrices (which aren't negatives of each
-other) answers a different, made-up game. `normal_form.mixed_nash_equilibria` replaces
-it with support enumeration, which works on the actual two payoff matrices and finds
-all three of Battle of the Sexes's equilibria, confirmed in
-`test_battle_of_the_sexes_has_three_equilibria`.
-
-**`bayesian_nash_equilibrium` ignored the opponent's type.** The inner closure is
-defined to take `(player_strategy, opponent_strategy)`, but the call site is
-`self.calculate_best_response(opponent_strategy=0)` -- always zero, regardless of
-`opponent_type` or the type probabilities. Every type's "best response" is therefore
-the monopoly quantity, and the averaging over types at the end does nothing
-informative. `bayesian.py` implements the actual Gibbons 3.1 model: firm 1 picks one
-quantity against its *expectation* over firm 2's type-contingent quantities, and each
-type of firm 2 best-responds knowing its own cost.
-`test_closed_form_satisfies_the_three_best_response_conditions` and an independent
-fixed-point solver (`test_numeric_solver_agrees_with_the_closed_form`) both confirm
-this.
-
-**Dead weight and import-time side effects.** `num_firms` and `repeated` are
-constructor arguments that no method reads. Module-level code calls
-`plot_best_response(...)` and `plot_cournot_3d(...)`, both ending in `plt.show()`, so
-simply `import`-ing the original file blocks on two plot windows and prints three
-unrelated examples to stdout.
-
 ## How it works
 
 ```mermaid
@@ -261,7 +212,7 @@ python validate.py   # regenerates docs/VALIDATION.md and docs/img/
 | `plots.py` | Figures. Kept out of the solving path |
 | `run.py` | `cournot`, `nash`, `bayes`, `repeated` subcommands |
 | `validate.py` | Regenerates `docs/VALIDATION.md` and `docs/img/` |
-| `tests/` | 42 tests, including a named regression for each defect above |
+| `tests/` | 42 tests |
 | `docs/THEORY.md` | Derivations for every closed form, with Gibbons chapter references |
 | `docs/VALIDATION.md` | Full tables: quantities, dynamics, game solutions, thresholds |
 | `legacy/brf_gametheory.py` | The original file, annotated. Not imported; known broken |
