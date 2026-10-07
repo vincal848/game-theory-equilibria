@@ -1,6 +1,6 @@
 # BRFCalculator
 
-[![tests](https://github.com/vincal848/BRFCalculator/actions/workflows/tests.yml/badge.svg)](https://github.com/vincal848/BRFCalculator/actions/workflows/tests.yml)
+[![tests](https://github.com/vincal848/game-theory-equilibria/actions/workflows/tests.yml/badge.svg)](https://github.com/vincal848/game-theory-equilibria/actions/workflows/tests.yml)
 
 This project came out of a continuation of a file I worked on for my first project in
 Python, expanded into a class of best-response functions after a course in game
