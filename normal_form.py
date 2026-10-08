@@ -9,10 +9,11 @@ player 2 plays column j. Zero-sum games are the special case B = -A.
 import itertools
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import linprog
 
 
-def _check_game(A, B):
+def _check_game(A: ArrayLike, B: ArrayLike) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     A = np.asarray(A, dtype=float)
     B = np.asarray(B, dtype=float)
     if A.shape != B.shape:
@@ -22,7 +23,7 @@ def _check_game(A, B):
     return A, B
 
 
-def pure_nash_equilibria(A, B):
+def pure_nash_equilibria(A: ArrayLike, B: ArrayLike) -> list[tuple[int, int]]:
     """All pure-strategy Nash equilibria, found by marking best responses.
 
     Cell (i, j) is an equilibrium if row i is a best response to column j (for
@@ -40,7 +41,7 @@ def pure_nash_equilibria(A, B):
     return equilibria
 
 
-def dominated_strategies_eliminated(A, B):
+def dominated_strategies_eliminated(A: ArrayLike, B: ArrayLike) -> tuple[list[int], list[int]]:
     """Iterated elimination of strictly dominated pure strategies.
 
     Returns (rows, cols): the row and column indices of the original game that
@@ -67,7 +68,7 @@ def dominated_strategies_eliminated(A, B):
     return rows, cols
 
 
-def zero_sum_value(A):
+def zero_sum_value(A: ArrayLike) -> tuple[float, NDArray[np.float64]]:
     """Value and optimal row-player strategy of a zero-sum game via linear programming.
 
     Player 1 (rows) is the maximiser, player 2 (columns) the minimiser, and
@@ -96,7 +97,9 @@ def zero_sum_value(A):
     return shifted_value - shift, p
 
 
-def _indifference_solve(payoffs, support_self, support_other):
+def _indifference_solve(
+    payoffs: NDArray[np.float64], support_self: list[int], support_other: list[int]
+) -> tuple[NDArray[np.float64], float] | None:
     """Solve for the mixed strategy over support_other that makes support_self indifferent.
 
     payoffs is the payoff matrix of the player being made indifferent (rows = that
@@ -128,7 +131,9 @@ def _indifference_solve(payoffs, support_self, support_other):
     return probs, value
 
 
-def mixed_nash_equilibria(A, B, tol=1e-9):
+def mixed_nash_equilibria(
+    A: ArrayLike, B: ArrayLike, tol: float = 1e-9
+) -> list[tuple[NDArray[np.float64], NDArray[np.float64]]]:
     """All mixed-strategy Nash equilibria of a nondegenerate bimatrix game, by support
     enumeration (Gibbons ch. 3's indifference principle, done exhaustively rather than
     guessing a support).

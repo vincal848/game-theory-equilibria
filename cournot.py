@@ -15,9 +15,10 @@ For symmetric costs this collapses to the textbook q_i = (a - c)/((n + 1)*b).
 """
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 
-def _check_params(a, b, costs):
+def _check_params(a: float, b: float, costs: ArrayLike) -> NDArray[np.float64]:
     if b <= 0:
         raise ValueError(f"slope b must be positive, got {b}")
     costs = np.atleast_1d(np.asarray(costs, dtype=float))
@@ -28,21 +29,21 @@ def _check_params(a, b, costs):
     return costs
 
 
-def price(total_quantity, a, b):
+def price(total_quantity: float, a: float, b: float) -> float:
     return a - b * total_quantity
 
 
-def profit(q_i, others_quantity, a, b, c_i):
+def profit(q_i: float, others_quantity: float, a: float, b: float, c_i: float) -> float:
     return (price(q_i + others_quantity, a, b) - c_i) * q_i
 
 
-def best_response(others_quantity, a, b, c_i):
+def best_response(others_quantity: float, a: float, b: float, c_i: float) -> float:
     """Firm i's profit-maximising output given the total output of its rivals."""
     _check_params(a, b, [c_i])
     return max(0.0, (a - c_i - b * others_quantity) / (2 * b))
 
 
-def nash_quantities(a, b, costs):
+def nash_quantities(a: float, b: float, costs: ArrayLike) -> NDArray[np.float64]:
     """Closed-form Cournot-Nash output for n firms with (possibly asymmetric) costs.
 
     Returns the vector of equilibrium quantities q_i. See module docstring for the
@@ -57,7 +58,7 @@ def nash_quantities(a, b, costs):
     return q
 
 
-def symmetric_nash_quantity(n, a, b, c):
+def symmetric_nash_quantity(n: int, a: float, b: float, c: float) -> float:
     """The textbook q_i = (a - c)/((n + 1)*b) for n identical firms."""
     if n < 1:
         raise ValueError(f"number of firms must be at least 1, got {n}")
@@ -65,26 +66,26 @@ def symmetric_nash_quantity(n, a, b, c):
     return q[0]
 
 
-def monopoly_quantity(a, b, c):
+def monopoly_quantity(a: float, b: float, c: float) -> float:
     """Total output a single firm (or a perfect cartel) would choose: (a - c)/(2b)."""
     _check_params(a, b, [c])
     return (a - c) / (2 * b)
 
 
-def collusive_quantities(n, a, b, c):
+def collusive_quantities(n: int, a: float, b: float, c: float) -> NDArray[np.float64]:
     """Symmetric split of the monopoly output among n colluding firms."""
     if n < 1:
         raise ValueError(f"number of firms must be at least 1, got {n}")
     return np.full(n, monopoly_quantity(a, b, c) / n)
 
 
-def competitive_quantity(a, b, c):
+def competitive_quantity(a: float, b: float, c: float) -> float:
     """Perfectly competitive total output, where price equals marginal cost: (a - c)/b."""
     _check_params(a, b, [c])
     return (a - c) / b
 
 
-def deviation_best_response_to_collusion(n, a, b, c):
+def deviation_best_response_to_collusion(n: int, a: float, b: float, c: float) -> float:
     """A single firm's best response if the other n-1 stick to the collusive split.
 
     Used by repeated.py for the grim-trigger sustainability threshold: this is the
@@ -96,7 +97,7 @@ def deviation_best_response_to_collusion(n, a, b, c):
     return best_response(others_quantity, a, b, c)
 
 
-def stackelberg(a, b, c1, c2):
+def stackelberg(a: float, b: float, c1: float, c2: float) -> tuple[float, float]:
     """Leader (firm 1) and follower (firm 2) quantities in 2-firm Stackelberg competition.
 
     The follower's reaction function is q2 = (a - c2 - b*q1)/(2b) (same as Cournot best
@@ -112,7 +113,9 @@ def stackelberg(a, b, c1, c2):
     return q1, q2
 
 
-def simultaneous_best_response_dynamics(n, a, b, c, q0=None, n_rounds=20):
+def simultaneous_best_response_dynamics(
+    n: int, a: float, b: float, c: float, q0: ArrayLike | None = None, n_rounds: int = 20
+) -> NDArray[np.float64]:
     """Iterated best-response dynamics with simultaneous updating, symmetric firms.
 
     Each round every firm best-responds to the *previous* round's rivals' total output.
