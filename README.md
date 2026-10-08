@@ -1,4 +1,4 @@
-# BRFCalculator
+# game-theory-equilibria
 
 [![tests](https://github.com/vincal848/game-theory-equilibria/actions/workflows/tests.yml/badge.svg)](https://github.com/vincal848/game-theory-equilibria/actions/workflows/tests.yml)
 
